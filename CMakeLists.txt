@@ -10,6 +10,13 @@ add_custom_target(
     ${CMAKE_CURRENT_LIST_DIR}
 )
 
+# Link statically when building on mingw
+# to avoid errors trying to find the correct dlls
+if (MINGW)
+    message("Platform Mingw")
+    add_link_options(--static)
+endif()
+
 #######################
 # Download dependencies
 #######################
