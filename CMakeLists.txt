@@ -103,7 +103,11 @@ message("OPENGL_LIBRARIES:${OpenGL_LIBRARIES}")
 ######################
 
 set(SOURCES
-    "src/main.cpp"
+    "src/Main.cpp"
+    "src/App.h"
+    "src/App.cpp"
+    "src/Types.h"
+    "src/Calc.cpp"
     # ${IMGUI_SOURCES}
     # ${IMPLOT_SOURCES}
 )
