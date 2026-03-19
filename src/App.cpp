@@ -1,13 +1,18 @@
 #include "App.h"
-#include "Types.h"
+#include "CSV.h"
 
 #include <imgui.h>
 #include <implot.h>
 
+#include <iostream>
+
 App* App::s_Instance;
 
 App* App::Init() {
-    return new App;
+    if (!s_Instance)
+        return new App;
+    else
+        return nullptr;
 }
 
 App::App() {
@@ -30,7 +35,9 @@ App::App() {
     style.WindowMinSize = { 200.0f, 200.0f };
 
     m_CemVals.reserve(3);
-    m_CemVals.emplace_back(InputVal{ 0 });
+    m_CemVals.emplace_back();
+
+    LoadData("res/Data.csv");
 }
 
 App::~App() {
@@ -47,6 +54,10 @@ void App::WindowInput() {
     ImGui::SameLine();
     HelpWidget(R"(Input cementitious materials here
 *more stuff about cementitious materials*)");
+    ImGui::SameLine();
+    if (ImGui::Button(" ? "))
+        ImGui::OpenPopup("Mixture Values Information");
+    WindowMixtures();
 
     ImGui::Separator();
 
@@ -76,7 +87,15 @@ void App::WindowInput() {
         ImGui::TableNextColumn();
         // ImGui::SetNextItemWidth(TEXT_BASE_WIDTH * 30);
         ImGui::SetNextItemWidth(150);
-        ImGui::Combo("Type", &m_CemVals[i].Type, CEMENT_STRS, CEMENT_TYPES_CNT);
+        if (ImGui::BeginCombo("Type", m_CemVals[i].Type != -1 ? m_MixVals[m_CemVals[i].Type].Name.c_str() : "")) {
+            for (uint32_t j = 0; j < m_MixVals.size(); ++j)
+                if (m_MixVals[j].Type == ContributorType::Cement)
+                    if (ImGui::Selectable(m_MixVals[j].Name.c_str()))
+                        m_CemVals[i].Type = j;
+
+            ImGui::EndCombo();
+        }
+        // ImGui::Combo("Type", &m_CemVals[i].Type, cementNames->data(), cementNames->size());
         ImGui::TableNextColumn();
         ImGui::InputFloat("%", &m_CemVals[i].Value);
 
@@ -85,7 +104,8 @@ void App::WindowInput() {
 
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(150);
-        ImGui::Combo("Transport Type", (int*)&m_CemVals[i].Trans, TRANSPORT_STRS, TRANSPORT_TYPES_CNT);
+        ImGui::Text("Transport Type placeholder");
+        // ImGui::Combo("Transport Type", (int*)&m_CemVals[i].Trans, TRANSPORT_STRS, TRANSPORT_TYPES_CNT);
         ImGui::TableNextColumn();
         ImGui::InputFloat("km", &m_CemVals[i].Dist);
 
@@ -96,7 +116,7 @@ void App::WindowInput() {
     }
 
     if (ImGui::Button("Add##Cementitious")) {
-        m_CemVals.push_back({ 0 });
+        m_CemVals.emplace_back();
     }
 
     ImGui::Dummy(ImVec2(0.0f, 20.0f));
@@ -114,15 +134,15 @@ void App::WindowGraph() {
     ImGui::Begin("Carbon Footprint", &m_ShowGraph);
 
     const char* labels[] = {
-        "One",
-        "Two",
-        "Three",
+        "St. Marys Cement - C595",
+        "Lafarge Canada - General Use",
+        "Votorantim Cimentos GU",
     };
 
     float values[] = {
-        1.0f,
-        2.0f,
-        3.0f,
+        0.50f,
+        0.25f,
+        0.25f,
     };
 
     ImPlotPieChartFlags flags = 0;
@@ -145,6 +165,66 @@ void App::WindowGraph() {
     }
 
     ImGui::End();
+}
+
+void App::WindowMixtures() {
+    // Always center this window when appearing
+    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+    if (ImGui::BeginPopupModal("Mixture Values Information", NULL, ImGuiWindowFlags_HorizontalScrollbar)) {
+        ImGuiTableFlags tableFlags =
+            ImGuiTableFlags_Borders
+            | ImGuiTableFlags_ScrollX
+            | ImGuiTableFlags_ScrollY;
+        ImVec2 outerSize = ImVec2(ImVec2(0, ImGui::GetFrameHeightWithSpacing() * 7 + 30));
+        ImGui::BeginTable("Mixture info", 6, tableFlags, outerSize);
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn(); ImGui::Text("Contributor");
+        ImGui::TableNextColumn(); ImGui::Text("Name");
+        ImGui::TableNextColumn(); ImGui::Text("Value");
+        ImGui::TableNextColumn(); ImGui::Text("Accuracy");
+        ImGui::TableNextColumn(); ImGui::Text("Location");
+        ImGui::TableNextColumn(); ImGui::Text("Source");
+
+        for (const MixtureVal& val : m_MixVals) {
+            ImGui::PushID(&val);
+            ImGui::TableNextRow();
+
+            ImGui::TableNextColumn();
+            switch (val.Type) {
+            case ContributorType::Cement:    ImGui::Text("Cement");    break;
+            case ContributorType::Admixture: ImGui::Text("Admixture"); break;
+            case ContributorType::Aggregate: ImGui::Text("Aggregate"); break;
+            case ContributorType::Transport: ImGui::Text("Transport"); break;
+            }
+
+            ImGui::TableNextColumn();
+            ImGui::Text("%s", val.Name.c_str());
+            if (ImGui::BeginItemTooltip()) {
+                ImGui::Text("%s", val.Name.c_str());
+                ImGui::EndTooltip();
+            }
+
+            ImGui::TableNextColumn();
+            ImGui::Text("%.2f", val.Value);
+            ImGui::TableNextColumn();
+            ImGui::Text("%.2f%%", val.Accuracy * 100);
+            ImGui::TableNextColumn();
+            ImGui::Text("%s", val.Location.c_str());
+            ImGui::TableNextColumn();
+            if (val.Source.find("https://") == 0)
+                ImGui::TextLinkOpenURL(val.Source.c_str());
+            else
+                ImGui::Text("%s", val.Source.c_str());
+
+            ImGui::PopID();
+        }
+        ImGui::EndTable();
+
+        if (ImGui::Button("Close"))
+            ImGui::CloseCurrentPopup();
+        ImGui::EndPopup();
+    }
 }
 
 void App::WindowDockSpace() {
@@ -294,3 +374,55 @@ void App::WindowDemoGraph() {
     ImGui::End();
 }
 
+void App::LoadData(const std::filesystem::path& path) {
+    CSV csv(path);
+
+    m_MixVals.reserve(csv.GetLineCount() + 100);
+
+    while (csv.NextLine()) {
+        try {
+            std::string contributor = csv.Next<std::string>().value();
+            std::string category    = csv.Next<std::string>().value();
+            std::string name        = csv.Next<std::string>().value();
+            std::string location    = csv.Next<std::string>().value();
+            float value             = csv.Next<float>().value();
+            float accuracy          = csv.Next<float>().value();
+            std::string source      = csv.Next<std::string>().value();
+
+            ContributorType type;
+            if (contributor == "Admixtures")
+                type = ContributorType::Admixture;
+            else if (contributor == "Aggregates")
+                type = ContributorType::Aggregate;
+            else if (contributor == "Cement")
+                type = ContributorType::Cement;
+            else if (contributor == "Transport")
+                type = ContributorType::Transport;
+            else if (contributor == "SCM") {
+                std::cout << "Ignoring \"SCM\" contributor type...\n";
+                continue;
+            } else if (contributor == "Water") {
+                std::cout << "Ignoring \"Water\" contributor type...\n";
+                continue;
+            } else
+                throw std::invalid_argument("Invalid contributor type");
+
+            m_MixVals.emplace_back(
+                type,
+                value,
+                accuracy,
+                std::move(name),
+                std::move(location),
+                std::move(source)
+            );
+        } catch (std::bad_optional_access& e) {
+            std::cout << "Error reading csv file!\n";
+            std::cout << "Row: " << csv.GetRow() << " column: " << csv.GetColumn() << "\n";
+            continue;
+        } catch (std::invalid_argument& e) {
+            std::cout << "Invalid value in csv file!\n";
+            std::cout << "Row: " << csv.GetRow() << " column: " << csv.GetColumn() << "\n";
+            continue;
+        }
+    }
+}

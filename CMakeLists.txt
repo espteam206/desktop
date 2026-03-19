@@ -114,9 +114,8 @@ set(SOURCES
     "src/App.h"
     "src/App.cpp"
     "src/Types.h"
+    "src/CSV.h"
     "src/Calc.cpp"
-    # ${IMGUI_SOURCES}
-    # ${IMPLOT_SOURCES}
 )
 
 if (WIN32)
