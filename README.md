@@ -1,10 +1,15 @@
-# desktop
+# SEICA
 The desktop alternative design for concrete carbon calculation.
+S - Software for
+E - Emissions
+I - In
+C - Concrete
+A - Accounting
 
-## compiling
+## Compiling
 Requires CMake to build. CMake will automatically fetch all the dependencies
 ```
-git clone https://github.com/espteam206/desktop
+git clone https://github.com/espteam206/SEICA
 cd desktop
 cmake -B build
 cmake --build build
