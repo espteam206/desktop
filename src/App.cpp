@@ -15,7 +15,9 @@ App* App::Init() {
         return nullptr;
 }
 
-App::App() {
+App::App()
+    : m_SplashImage("res/images/SplashScreen.png") {
+
     ImGuiIO& io = ImGui::GetIO(); (void)io;
 
     // Load font
@@ -34,7 +36,7 @@ App::App() {
     style.ChildBorderSize = 0.0f;
     style.WindowMinSize = { 200.0f, 200.0f };
 
-    LoadData("res/databases/Test.csv");
+    LoadData("res/databases/Test2.csv");
 
     // static const ImU32 MyColors[3] = {IM_COL32(255,0,0,255), IM_COL32(0,255,0,255), IM_COL32(0,0,255,255)};
     // ImPlotColormap myColormap = ImPlot::AddColormap("DFSLJKSFDLJKDSFLKJ", MyColors, 3);
@@ -194,6 +196,72 @@ void App::WindowGraph() {
     }
 
     ImGui::End();
+}
+
+static constexpr float s_SplashTime = 4.0f;
+
+void App::PopupSplash() {
+    // Always center the splash screen when appearing
+    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+    // Set the splash screen size
+    ImVec2 windowSize = ImGui::GetMainViewport()->Size;
+    ImVec2 size = ImVec2(windowSize.x * 0.7f, windowSize.y * 0.7f);
+    ImGui::SetNextWindowSize(size, ImGuiCond_Appearing);
+
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+    if (ImGui::BeginPopupModal("Splash", NULL, flags)) {
+        // Splash screen image
+        ImTextureID texture = (uint64_t)m_SplashImage.GetID();
+        float width = ImGui::GetContentRegionAvail().x * 0.7f;
+        float height = width * m_SplashImage.GetHeight() / m_SplashImage.GetWidth();
+        // Centre the image
+        ImGui::SetCursorPosY(30.0f);
+        ImGui::SetCursorPosX((ImGui::GetContentRegionAvail().x - width) * 0.5f);
+        ImGui::Image(texture, ImVec2(width, height), ImVec2(0, 1), ImVec2(1, 0));
+
+        // Progress bar
+        float t = m_SplashTimer / s_SplashTime;
+        float progress = t * t * t * t;
+
+        if (t < 0.4f)
+            progress = 4.0f * t * t;
+        else if (t < 0.6f)
+            progress = 0.64f;
+        else if (t < 0.9f)
+            progress = -2.25f * t * t + 4.5 * t - 1.25;
+        else
+            progress = 1.0f;
+
+        ImGui::Dummy(ImVec2(0.0f, 10.0f));
+
+        ImGui::ProgressBar(progress, ImVec2(ImGui::GetWindowWidth() - 100.0f, 0.0f), "");
+
+        ImGui::SameLine();
+        ImGui::Text("(%.0f%%)", progress * 100.0f);
+
+        ImGui::Dummy(ImVec2(0.0f, 10.0f));
+
+        if (t < 0.15f)
+            ImGui::Text("Starting application...");
+        else if (t < 0.3f)
+            ImGui::Text("Initializing engine...");
+        else if (t < 0.55f)
+            ImGui::Text("Loading databases...");
+        else if (t < 0.8f)
+            ImGui::Text("Stalling...");
+        else if (t < 0.9f)
+            ImGui::Text("Loading fonts...");
+        else
+            ImGui::Text("Done!");
+
+        m_SplashTimer += m_DeltaTime;
+
+        if (m_SplashTimer > s_SplashTime)
+            ImGui::CloseCurrentPopup();
+
+        ImGui::EndPopup();
+    }
 }
 
 void App::WindowCalcs() {
@@ -417,14 +485,22 @@ void App::HelpWidget(const char* text) {
 }
 
 void App::Update(float dt) {
-    if (m_ShowImGuiDemo)
-        ImGui::ShowDemoWindow(&m_ShowImGuiDemo);
+    m_DeltaTime = dt;
+
+    // Show the loading screen
+    if (m_SplashTimer < s_SplashTime) {
+        ImGui::OpenPopup("Splash");
+        PopupSplash();
+    }
 
     WindowDockSpace();
     WindowInput();
     WindowGraph();
     WindowCalcs();
     WindowDemoGraph();
+
+    if (m_ShowImGuiDemo)
+        ImGui::ShowDemoWindow(&m_ShowImGuiDemo);
 }
 
 void App::Shutdown() {

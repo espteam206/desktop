@@ -59,6 +59,9 @@ int main() {
 
     App* app = App::Init();
 
+    double oldTime = glfwGetTime();
+    double newTime;
+
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT);
 
@@ -67,7 +70,9 @@ int main() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        app->Update(0.0f);
+        newTime = glfwGetTime();
+        app->Update((float)(newTime - oldTime));
+        oldTime = newTime;
         
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

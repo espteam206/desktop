@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "Image.h"
+
 class App {
 public:
     static App* Init();
@@ -21,6 +23,7 @@ private:
     void WindowInput();
     void WindowGraph();
     void WindowCalcs();
+    void PopupSplash();
     void PopupMixtures();
     void PopupCalcs();
 
@@ -32,6 +35,11 @@ private:
 
     void Calculate();
 private:
+    float m_DeltaTime = 0.0f;
+
+    float m_SplashTimer = 0.0f;
+    Image m_SplashImage;
+
     enum ContributorType {
         // Materials
         Cement,

@@ -1,4 +1,4 @@
-Contributor,Category,Name,Location,"Kg of CO2 per (material, kg; water, m^3; transport, tonne*km)"
+Contributor,Category,Name,Location,"Kg of CO2 per (material, kg; water, m^3; transport, tonne*km)",Accuracy,Source
 Cement,,CEM I,,0.889,0,https://www.mdpi.com/1996-1073/16/7/3229
 Cement,,CEM II,,0.704,0,https://www.mdpi.com/1996-1073/16/7/3229
 Cement,,CEM III,,0.482,0,https://www.mdpi.com/1996-1073/16/7/3229
@@ -22,3 +22,4 @@ SCM,,Glass fibres,,1.44,0,https://www.mdpi.com/1996-1073/16/7/3229
 Admixtures,,Superplasticizer,,1.53,0,https://www.mdpi.com/1996-1073/16/7/3229
 Admixtures,,Na2SiO3 (solution),,0.823,0,https://www.mdpi.com/1996-1073/16/7/3229
 Admixtures,,NaOH,,0.07,0,https://www.mdpi.com/1996-1073/16/7/3229
+Transport,,Heavy Duty Truck,,0.074,0,Raphael

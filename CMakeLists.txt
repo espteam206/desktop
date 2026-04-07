@@ -115,6 +115,8 @@ set(SOURCES
     "src/App.cpp"
     "src/CSV.h"
     "src/Calc.cpp"
+    "src/Image.h"
+    "src/Image.cpp"
 )
 
 if (WIN32)
@@ -168,6 +170,8 @@ target_link_libraries(
 target_include_directories(
     ${PROJECT_NAME}
     PUBLIC
+    "lib/stb_image"
+    "lib/glad/include"
     ${implot_SOURCE_DIR}
     ${imgui_SOURCE_DIR}
 )

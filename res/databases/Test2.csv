@@ -1,0 +1,12 @@
+Contributor,Category,Name,Location,"Kg of CO2 per (material, kg; water, m^3; transport, tonne*km)",Accuracy,Source
+Cement,,CEM I,,0.703,0,https://www.mdpi.com/1996-1944/17/13/3162
+Cement,,CEM II,,0.559,0,https://www.mdpi.com/1996-1944/17/13/3163
+Cement,,CEM III,,0.377,0,https://www.mdpi.com/1996-1944/17/13/3164
+Cement,,CEM V,,0.405,0,https://www.mdpi.com/1996-1944/17/13/3165
+Aggregates,,Granite 2-8 mm,,0.007,0,https://www.mdpi.com/1996-1944/17/13/3166
+Aggregates,,Granite 8-16mm,,0.007,0,https://www.mdpi.com/1996-1944/17/13/3167
+Aggregates,,Sand 0-2mm,,0.0031,0,https://www.mdpi.com/1996-1944/17/13/3168
+Water,,Water,,0.0006,0,https://www.mdpi.com/1996-1944/17/13/3169
+Admixtures,,Superplasticizer,,1.53,0,https://www.mdpi.com/1996-1944/17/13/3170
+Transport,,Cement Transport,,0.199,0,https://www.mdpi.com/1996-1944/17/13/3171
+Transport,,Aggregate Transport,,0.166,0,https://www.mdpi.com/1996-1944/17/13/3172
