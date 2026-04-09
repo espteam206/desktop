@@ -6,6 +6,8 @@
 
 #include <cstdio>
 
+#define SPLASH_SCREEN 0
+
 App* App::s_Instance;
 
 App* App::Init() {
@@ -16,7 +18,8 @@ App* App::Init() {
 }
 
 App::App()
-    : m_SplashImage("res/images/SplashScreen.png") {
+    : m_SplashImage("res/images/SplashScreen.png"),
+      m_FolderImage("res/images/Folder.png") {
 
     ImGuiIO& io = ImGui::GetIO(); (void)io;
 
@@ -36,7 +39,8 @@ App::App()
     style.ChildBorderSize = 0.0f;
     style.WindowMinSize = { 200.0f, 200.0f };
 
-    LoadData("res/databases/Test2.csv");
+    m_SelectedDatabase = "databases/Data.csv";
+    LoadData(m_SelectedDatabase);
 
     // static const ImU32 MyColors[3] = {IM_COL32(255,0,0,255), IM_COL32(0,255,0,255), IM_COL32(0,0,255,255)};
     // ImPlotColormap myColormap = ImPlot::AddColormap("DFSLJKSFDLJKDSFLKJ", MyColors, 3);
@@ -53,17 +57,35 @@ void App::WindowInput() {
     static constexpr const char* s_InputValueUnits[CONTRIBUTOR_TYPE_CNT] = {
         "% mass",
         "% mass",
-        "kg/m^3 cement",
-        "kg/m^3 cement",
-        "kg/(tonne*km)",
+        "kg/m^3",
+        "kg/m^3",
+        "kg/(1000*km)",
         "ratio",
     };
 
     ImGui::Begin("Mixture parameters", &m_ShowInput);
 
-    ImGui::InputFloat("kg cementitious materials / m^3 mixture", &m_CementitiousMass, 0.0f, 0.0f, "%.2f");
-    ImGui::InputFloat("Total mixture volume", &m_TotalVolume, 0.0f, 0.0f, "%.2f");
+    // Database selection and editing
+    ImGui::Text("Database");
     ImGui::Separator();
+    ImGui::Text("Selected Database:");
+    ImGui::SetNextItemWidth(200.0f);
+    ImGui::InputText("##Selected Database", m_SelectedDatabase.data(), m_SelectedDatabase.size() + 1, ImGuiInputTextFlags_ReadOnly);
+    ImGui::SameLine();
+    float size = ImGui::CalcTextSize("A").y;
+    ImGui::ImageButton("Folder Icon", m_FolderImage.GetID(), ImVec2(size, size), ImVec2(0, 1), ImVec2(1, 0));
+    ImGui::Dummy(ImVec2(0.0f, 10.0f));
+    ImGui::Button("Edit Database");
+    ImGui::Button("Reload Database");
+    ImGui::Dummy(ImVec2(0.0f, 20.0f));
+
+    ImGui::Text("Mixture Properties");
+    ImGui::Separator();
+    ImGui::PushItemWidth(100);
+    ImGui::InputFloat("kg cementitious materials / m^3", &m_CementitiousMass, 0.0f, 0.0f, "%.2f");
+    ImGui::PushItemWidth(100);
+    ImGui::InputFloat("Total mixture volume (m^3)", &m_TotalVolume, 0.0f, 0.0f, "%.2f");
+    ImGui::Dummy(ImVec2(0.0f, 20.0f));
 
     for (int32_t type = 0; type < CONTRIBUTOR_TYPE_CNT; ++type) {
         if (type == ContributorType::Transport)
@@ -89,9 +111,7 @@ void App::WindowInput() {
 
             ImGui::TableNextColumn();
             // The delete button
-            // TODO: Make it square
-            ImGui::PushItemWidth(100);
-            if (ImGui::Button("-")) {
+            if (ImGui::Button(" - ")) {
                 vals.erase(std::next(vals.begin(), i));
                 ImGui::EndTable();
                 ImGui::PopID();
@@ -113,6 +133,7 @@ void App::WindowInput() {
             }
 
             ImGui::TableNextColumn();
+            ImGui::PushItemWidth(100);
             const char* unit = s_InputValueUnits[type];
             ImGui::InputFloat(unit, &vals[i].Value, 0.0f, 0.0f, "%.3f");
 
@@ -130,7 +151,7 @@ void App::WindowInput() {
             ImGui::SetNextItemWidth(150);
             std::vector<MixtureVal>& transVals = m_MixVals[ContributorType::Transport];
             comboStr = vals[i].Trans != -1 ? transVals[vals[i].Trans].Name.c_str() : "";
-            if (ImGui::BeginCombo("Type##Transport", comboStr)) {
+            if (ImGui::BeginCombo("Transport", comboStr)) {
                 for (uint32_t j = 0; j < transVals.size(); ++j)
                     if (ImGui::Selectable(transVals[j].Name.c_str()))
                         vals[i].Trans = j;
@@ -488,10 +509,12 @@ void App::Update(float dt) {
     m_DeltaTime = dt;
 
     // Show the loading screen
+#if SPLASH_SCREEN
     if (m_SplashTimer < s_SplashTime) {
         ImGui::OpenPopup("Splash");
         PopupSplash();
     }
+#endif
 
     WindowDockSpace();
     WindowInput();

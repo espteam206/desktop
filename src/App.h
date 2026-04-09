@@ -23,6 +23,7 @@ private:
     void WindowInput();
     void WindowGraph();
     void WindowCalcs();
+    void WindowDatabase();
     void PopupSplash();
     void PopupMixtures();
     void PopupCalcs();
@@ -39,6 +40,9 @@ private:
 
     float m_SplashTimer = 0.0f;
     Image m_SplashImage;
+
+    Image m_FolderImage;
+    std::string m_SelectedDatabase;
 
     enum ContributorType {
         // Materials
